@@ -1,0 +1,32 @@
+# Core XML processing
+lxml>=4.9.0
+python-dateutil>=2.8.0
+
+# Database
+# sqlite3  # Built into Python
+sqlalchemy>=1.4.0
+
+# Optional API framework
+fastapi>=0.100.0
+uvicorn>=0.23.0
+pydantic>=2.0.0
+
+# Data processing and validation
+pandas>=1.5.0
+numpy>=1.24.0
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Logging and utilities
+click>=8.0.0
+rich>=13.0.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+isort>=5.12.0
