@@ -24,17 +24,21 @@ class DashboardManager {
 
     async loadData() {
         try {
+            console.log('Attempting to load dashboard data...');
             // Try to load from local JSON file first
             const response = await fetch('data/processed/dashboard.json');
             if (response.ok) {
                 this.data = await response.json();
+                console.log('Dashboard data loaded successfully:', this.data);
             } else {
+                console.log('Dashboard JSON not found, using sample data');
                 // Fallback to sample data if JSON file doesn't exist
                 this.data = this.generateSampleData();
             }
             this.filteredData = this.data.transactions || [];
+            console.log('Filtered data set:', this.filteredData.length, 'transactions');
         } catch (error) {
-            console.warn('Could not load dashboard.json, using sample data');
+            console.warn('Could not load dashboard.json, using sample data:', error);
             this.data = this.generateSampleData();
             this.filteredData = this.data.transactions || [];
         }
@@ -147,22 +151,53 @@ class DashboardManager {
     }
 
     renderCharts() {
-        this.renderVolumeChart();
-        this.renderCategoryChart();
+        // Check if Chart.js is available
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js is not loaded!');
+            return;
+        }
+        
+        try {
+            this.renderVolumeChart();
+        } catch (error) {
+            console.error('Error rendering volume chart:', error);
+        }
+        
+        try {
+            this.renderCategoryChart();
+        } catch (error) {
+            console.error('Error rendering category chart:', error);
+        }
     }
 
     renderVolumeChart() {
-        const ctx = document.getElementById('volume-chart').getContext('2d');
+        console.log('Rendering volume chart...');
+        const canvas = document.getElementById('volume-chart');
+        if (!canvas) {
+            console.error('Volume chart canvas not found!');
+            return;
+        }
+        const ctx = canvas.getContext('2d');
         
         // Group transactions by date
         const volumeByDate = {};
         this.data.transactions.forEach(transaction => {
-            const date = new Date(transaction.date).toISOString().split('T')[0];
-            volumeByDate[date] = (volumeByDate[date] || 0) + transaction.amount;
+            try {
+                const date = new Date(transaction.date).toISOString().split('T')[0];
+                const amount = parseFloat(transaction.amount) || 0;
+                volumeByDate[date] = (volumeByDate[date] || 0) + amount;
+            } catch (error) {
+                console.warn('Error processing transaction date:', transaction.date, error);
+            }
         });
 
         const dates = Object.keys(volumeByDate).sort();
         const volumes = dates.map(date => volumeByDate[date]);
+        
+        console.log('Volume chart data:');
+        console.log('Dates:', dates);
+        console.log('Volumes:', volumes);
+        console.log('Volume by date:', volumeByDate);
 
         this.charts.volumeChart = new Chart(ctx, {
             type: 'line',
@@ -200,17 +235,31 @@ class DashboardManager {
     }
 
     renderCategoryChart() {
-        const ctx = document.getElementById('category-chart').getContext('2d');
+        console.log('Rendering category chart...');
+        const canvas = document.getElementById('category-chart');
+        if (!canvas) {
+            console.error('Category chart canvas not found!');
+            return;
+        }
+        const ctx = canvas.getContext('2d');
         
-        // Count transactions by category
-        const categoryCount = {};
-        this.data.transactions.forEach(transaction => {
-            categoryCount[transaction.category] = (categoryCount[transaction.category] || 0) + 1;
-        });
+        // Use categoryDistribution from data if available, otherwise count from transactions
+        let categoryCount = this.data.categoryDistribution;
+        if (!categoryCount) {
+            categoryCount = {};
+            this.data.transactions.forEach(transaction => {
+                categoryCount[transaction.category] = (categoryCount[transaction.category] || 0) + 1;
+            });
+        }
 
         const categories = Object.keys(categoryCount);
         const counts = Object.values(categoryCount);
         const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+        
+        console.log('Category chart data:');
+        console.log('Category count:', categoryCount);
+        console.log('Categories:', categories);
+        console.log('Counts:', counts);
 
         this.charts.categoryChart = new Chart(ctx, {
             type: 'doughnut',
