@@ -7,15 +7,24 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .chart-container {
-            width: 400px;
-            height: 300px;
+            width: 450px;
+            height: 400px;
             margin: 20px;
             padding: 20px;
             border: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-container h3 {
+            flex-shrink: 0;
+            margin-bottom: 10px;
         }
         canvas {
-            max-width: 100%;
-            height: 250px !important;
+            flex: 1;
+            max-width: 100% !important;
+            max-height: 320px !important;
+            width: 100% !important;
+            height: 320px !important;
         }
     </style>
 </head>
@@ -61,7 +70,10 @@
             console.log('Chart.js available:', typeof Chart !== 'undefined');
             
             // Test Volume Chart
-            const volumeCtx = document.getElementById('volume-test').getContext('2d');
+            const volumeCanvas = document.getElementById('volume-test');
+            volumeCanvas.width = 350;
+            volumeCanvas.height = 250;
+            const volumeCtx = volumeCanvas.getContext('2d');
             
             // Group transactions by date
             const volumeByDate = {};
@@ -87,7 +99,7 @@
                     }]
                 },
                 options: {
-                    responsive: true,
+                    responsive: false,
                     maintainAspectRatio: false,
                     scales: {
                         y: {
@@ -103,7 +115,10 @@
             });
             
             // Test Category Chart
-            const categoryCtx = document.getElementById('category-test').getContext('2d');
+            const categoryCanvas = document.getElementById('category-test');
+            categoryCanvas.width = 350;
+            categoryCanvas.height = 250;
+            const categoryCtx = categoryCanvas.getContext('2d');
             const categoryCount = testData.categoryDistribution;
             const categories = Object.keys(categoryCount);
             const counts = Object.values(categoryCount);
@@ -121,7 +136,7 @@
                     }]
                 },
                 options: {
-                    responsive: true,
+                    responsive: false,
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {

@@ -179,6 +179,10 @@ class DashboardManager {
         }
         const ctx = canvas.getContext('2d');
         
+        // Set canvas dimensions explicitly
+        canvas.width = 350;
+        canvas.height = 250;
+        
         // Group transactions by date
         const volumeByDate = {};
         this.data.transactions.forEach(transaction => {
@@ -213,7 +217,7 @@ class DashboardManager {
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: false,
                 scales: {
                     y: {
@@ -242,6 +246,10 @@ class DashboardManager {
             return;
         }
         const ctx = canvas.getContext('2d');
+        
+        // Set canvas dimensions explicitly
+        canvas.width = 350;
+        canvas.height = 250;
         
         // Use categoryDistribution from data if available, otherwise count from transactions
         let categoryCount = this.data.categoryDistribution;
@@ -273,7 +281,7 @@ class DashboardManager {
                 }]
             },
             options: {
-                responsive: true,
+                responsive: false,
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
