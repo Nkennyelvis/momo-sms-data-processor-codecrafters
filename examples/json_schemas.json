@@ -1,0 +1,550 @@
+{
+  "schema_info": {
+    "title": "MoMo SMS Data Processing System - JSON Schemas",
+    "team": "CodeCrafters",
+    "created": "2025-09-19",
+    "description": "JSON representations of database entities for API responses and data serialization",
+    "version": "1.0.0"
+  },
+  
+  "schemas": {
+    "user": {
+      "description": "User entity representing mobile money account holders",
+      "type": "object",
+      "properties": {
+        "user_id": {"type": "integer", "description": "Unique user identifier"},
+        "phone_number": {"type": "string", "pattern": "^\\+?[0-9]{10,15}$", "description": "Normalized phone number"},
+        "full_name": {"type": "string", "maxLength": 255, "description": "Complete user name"},
+        "account_status": {"type": "string", "enum": ["ACTIVE", "INACTIVE", "SUSPENDED"], "description": "Current account status"},
+        "registration_date": {"type": "string", "format": "date-time", "description": "Account creation timestamp"},
+        "last_activity_date": {"type": "string", "format": "date-time", "description": "Latest transaction timestamp"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "updated_at": {"type": "string", "format": "date-time"}
+      },
+      "required": ["user_id", "phone_number", "full_name", "account_status"],
+      "example": {
+        "user_id": 1,
+        "phone_number": "+250788123456",
+        "full_name": "Jean Baptiste Uwimana",
+        "account_status": "ACTIVE",
+        "registration_date": "2024-01-15T08:30:00Z",
+        "last_activity_date": "2024-09-17T16:45:00Z",
+        "created_at": "2024-01-15T08:30:00Z",
+        "updated_at": "2024-09-17T16:45:00Z"
+      }
+    },
+
+    "transaction_category": {
+      "description": "Transaction category for classifying mobile money operations",
+      "type": "object",
+      "properties": {
+        "category_id": {"type": "integer", "description": "Unique category identifier"},
+        "category_name": {"type": "string", "maxLength": 100, "description": "Human-readable category name"},
+        "category_code": {"type": "string", "maxLength": 20, "pattern": "^[A-Z_]{2,20}$", "description": "Short code for API usage"},
+        "description": {"type": "string", "description": "Detailed category description"},
+        "is_active": {"type": "boolean", "description": "Whether category is currently used"},
+        "created_at": {"type": "string", "format": "date-time"}
+      },
+      "required": ["category_id", "category_name", "category_code"],
+      "example": {
+        "category_id": 1,
+        "category_name": "Money Transfer",
+        "category_code": "TRANSFER",
+        "description": "Person to person money transfers",
+        "is_active": true,
+        "created_at": "2024-01-01T00:00:00Z"
+      }
+    },
+
+    "transaction": {
+      "description": "Complete transaction record with all related information",
+      "type": "object",
+      "properties": {
+        "transaction_id": {"type": "integer", "description": "Unique transaction identifier"},
+        "amount": {"type": "number", "multipleOf": 0.01, "minimum": 0, "description": "Transaction amount"},
+        "currency_code": {"type": "string", "pattern": "^[A-Z]{3}$", "default": "RWF", "description": "Currency code"},
+        "transaction_date": {"type": "string", "format": "date-time", "description": "When transaction occurred"},
+        "status": {"type": "string", "enum": ["SUCCESS", "FAILED", "PENDING", "CANCELLED"], "description": "Transaction status"},
+        "reference_number": {"type": "string", "maxLength": 50, "description": "External system reference"},
+        "description": {"type": "string", "description": "Transaction description from SMS"},
+        "fee_amount": {"type": "number", "multipleOf": 0.01, "minimum": 0, "description": "Transaction fee"},
+        "balance_before": {"type": "number", "multipleOf": 0.01, "description": "Account balance before transaction"},
+        "balance_after": {"type": "number", "multipleOf": 0.01, "description": "Account balance after transaction"},
+        "created_at": {"type": "string", "format": "date-time"},
+        "processed_at": {"type": "string", "format": "date-time"}
+      },
+      "required": ["transaction_id", "amount", "transaction_date", "status"],
+      "example": {
+        "transaction_id": 1,
+        "amount": 50000.00,
+        "currency_code": "RWF",
+        "transaction_date": "2024-09-15T10:30:00Z",
+        "status": "SUCCESS",
+        "reference_number": "TXN001",
+        "description": "Money transfer for school fees",
+        "fee_amount": 500.00,
+        "balance_before": 125000.00,
+        "balance_after": 74500.00,
+        "created_at": "2024-09-15T10:30:00Z",
+        "processed_at": "2024-09-15T10:31:00Z"
+      }
+    },
+
+    "system_log": {
+      "description": "System log entry for tracking data processing activities",
+      "type": "object",
+      "properties": {
+        "log_id": {"type": "integer", "description": "Unique log entry identifier"},
+        "log_level": {"type": "string", "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"], "description": "Log severity level"},
+        "log_source": {"type": "string", "maxLength": 100, "description": "System component generating log"},
+        "message": {"type": "string", "description": "Log message content"},
+        "transaction_id": {"type": "integer", "description": "Associated transaction if applicable"},
+        "processing_batch_id": {"type": "string", "maxLength": 50, "description": "Groups related processing activities"},
+        "timestamp": {"type": "string", "format": "date-time", "description": "When log entry was created"},
+        "additional_data": {"type": "object", "description": "Extra context in JSON format"}
+      },
+      "required": ["log_id", "log_level", "log_source", "message"],
+      "example": {
+        "log_id": 1,
+        "log_level": "INFO",
+        "log_source": "ETL_PROCESSOR",
+        "message": "Successfully processed transaction batch",
+        "transaction_id": 1,
+        "processing_batch_id": "BATCH_001",
+        "timestamp": "2024-09-15T10:31:00Z",
+        "additional_data": {
+          "records_processed": 5,
+          "processing_time": "2.3s"
+        }
+      }
+    },
+
+    "transaction_tag": {
+      "description": "Tag for flexible transaction classification",
+      "type": "object",
+      "properties": {
+        "tag_id": {"type": "integer", "description": "Unique tag identifier"},
+        "tag_name": {"type": "string", "maxLength": 50, "description": "Tag name for classification"},
+        "description": {"type": "string", "description": "Tag description"},
+        "is_system_generated": {"type": "boolean", "description": "Whether tag is auto-generated"},
+        "created_at": {"type": "string", "format": "date-time"}
+      },
+      "required": ["tag_id", "tag_name"],
+      "example": {
+        "tag_id": 1,
+        "tag_name": "high-value",
+        "description": "Transactions above 100,000 RWF",
+        "is_system_generated": true,
+        "created_at": "2024-01-01T00:00:00Z"
+      }
+    }
+  },
+
+  "api_response_examples": {
+    "single_user": {
+      "description": "API response for a single user with basic information",
+      "example": {
+        "success": true,
+        "data": {
+          "user_id": 1,
+          "phone_number": "+250788123456",
+          "full_name": "Jean Baptiste Uwimana",
+          "account_status": "ACTIVE",
+          "registration_date": "2024-01-15T08:30:00Z",
+          "last_activity_date": "2024-09-17T16:45:00Z",
+          "created_at": "2024-01-15T08:30:00Z",
+          "updated_at": "2024-09-17T16:45:00Z"
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_12345"
+      }
+    },
+
+    "transaction_with_relationships": {
+      "description": "Complete transaction with all related entities (users, category, tags)",
+      "example": {
+        "success": true,
+        "data": {
+          "transaction_id": 1,
+          "amount": 50000.00,
+          "currency_code": "RWF",
+          "transaction_date": "2024-09-15T10:30:00Z",
+          "status": "SUCCESS",
+          "reference_number": "TXN001",
+          "description": "Money transfer for school fees",
+          "fee_amount": 500.00,
+          "balance_before": 125000.00,
+          "balance_after": 74500.00,
+          "sender": {
+            "user_id": 1,
+            "phone_number": "+250788123456",
+            "full_name": "Jean Baptiste Uwimana",
+            "account_status": "ACTIVE"
+          },
+          "receiver": {
+            "user_id": 2,
+            "phone_number": "+250722987654",
+            "full_name": "Marie Claire Mukamana",
+            "account_status": "ACTIVE"
+          },
+          "category": {
+            "category_id": 1,
+            "category_name": "Money Transfer",
+            "category_code": "TRANSFER",
+            "description": "Person to person money transfers"
+          },
+          "tags": [
+            {
+              "tag_id": 4,
+              "tag_name": "recurring",
+              "description": "Regular recurring transactions",
+              "assigned_by": "USER",
+              "assigned_at": "2024-09-15T10:32:00Z"
+            }
+          ],
+          "roles": [
+            {
+              "user_id": 1,
+              "role_type": "SENDER"
+            },
+            {
+              "user_id": 2,
+              "role_type": "RECEIVER"
+            }
+          ],
+          "created_at": "2024-09-15T10:30:00Z",
+          "processed_at": "2024-09-15T10:31:00Z"
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_67890"
+      }
+    },
+
+    "user_with_transaction_summary": {
+      "description": "User profile with transaction statistics and recent activity",
+      "example": {
+        "success": true,
+        "data": {
+          "user": {
+            "user_id": 1,
+            "phone_number": "+250788123456",
+            "full_name": "Jean Baptiste Uwimana",
+            "account_status": "ACTIVE",
+            "registration_date": "2024-01-15T08:30:00Z",
+            "last_activity_date": "2024-09-17T16:45:00Z"
+          },
+          "transaction_summary": {
+            "sent_count": 2,
+            "received_count": 2,
+            "total_sent": 150000.00,
+            "total_received": 175000.00,
+            "net_balance_change": 25000.00,
+            "last_transaction_date": "2024-09-17T16:45:00Z"
+          },
+          "recent_transactions": [
+            {
+              "transaction_id": 4,
+              "amount": 75000.00,
+              "transaction_date": "2024-09-17T16:45:00Z",
+              "status": "SUCCESS",
+              "direction": "INCOMING",
+              "other_party": {
+                "full_name": "Grace Ingabire Uwamahoro",
+                "phone_number": "+250788654321"
+              },
+              "category": "Mobile Payment",
+              "description": "Payment for construction materials"
+            },
+            {
+              "transaction_id": 1,
+              "amount": 50000.00,
+              "transaction_date": "2024-09-15T10:30:00Z",
+              "status": "SUCCESS",
+              "direction": "OUTGOING",
+              "other_party": {
+                "full_name": "Marie Claire Mukamana",
+                "phone_number": "+250722987654"
+              },
+              "category": "Money Transfer",
+              "description": "Money transfer for school fees"
+            }
+          ],
+          "category_breakdown": [
+            {
+              "category": "Money Transfer",
+              "sent_count": 1,
+              "received_count": 0,
+              "sent_amount": 50000.00,
+              "received_amount": 0.00
+            },
+            {
+              "category": "Cash Deposit",
+              "sent_count": 0,
+              "received_count": 1,
+              "sent_amount": 0.00,
+              "received_amount": 100000.00
+            },
+            {
+              "category": "Mobile Payment",
+              "sent_count": 0,
+              "received_count": 1,
+              "sent_amount": 0.00,
+              "received_amount": 75000.00
+            }
+          ]
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_11223"
+      }
+    },
+
+    "transaction_analytics": {
+      "description": "Aggregated transaction analytics for dashboard",
+      "example": {
+        "success": true,
+        "data": {
+          "period": {
+            "start_date": "2024-09-01T00:00:00Z",
+            "end_date": "2024-09-19T23:59:59Z",
+            "duration_days": 19
+          },
+          "overall_metrics": {
+            "total_transactions": 7,
+            "successful_transactions": 6,
+            "failed_transactions": 0,
+            "pending_transactions": 1,
+            "total_volume": 295000.00,
+            "total_fees": 2450.00,
+            "average_transaction_amount": 42142.86,
+            "success_rate": 85.71
+          },
+          "category_analytics": [
+            {
+              "category_name": "Money Transfer",
+              "category_code": "TRANSFER",
+              "transaction_count": 3,
+              "total_volume": 90000.00,
+              "average_amount": 30000.00,
+              "percentage_of_volume": 30.51
+            },
+            {
+              "category_name": "Cash Deposit",
+              "category_code": "DEPOSIT",
+              "transaction_count": 1,
+              "total_volume": 100000.00,
+              "average_amount": 100000.00,
+              "percentage_of_volume": 33.90
+            },
+            {
+              "category_name": "Mobile Payment",
+              "category_code": "PAYMENT",
+              "transaction_count": 1,
+              "total_volume": 75000.00,
+              "average_amount": 75000.00,
+              "percentage_of_volume": 25.42
+            },
+            {
+              "category_name": "Cash Withdrawal",
+              "category_code": "WITHDRAW",
+              "transaction_count": 1,
+              "total_volume": 30000.00,
+              "average_amount": 30000.00,
+              "percentage_of_volume": 10.17
+            }
+          ],
+          "daily_trends": [
+            {
+              "date": "2024-09-14",
+              "transaction_count": 1,
+              "total_volume": 100000.00,
+              "successful_count": 1,
+              "failed_count": 0
+            },
+            {
+              "date": "2024-09-15",
+              "transaction_count": 1,
+              "total_volume": 50000.00,
+              "successful_count": 1,
+              "failed_count": 0
+            },
+            {
+              "date": "2024-09-16",
+              "transaction_count": 1,
+              "total_volume": 25000.00,
+              "successful_count": 1,
+              "failed_count": 0
+            },
+            {
+              "date": "2024-09-17",
+              "transaction_count": 2,
+              "total_volume": 80000.00,
+              "successful_count": 2,
+              "failed_count": 0
+            },
+            {
+              "date": "2024-09-18",
+              "transaction_count": 1,
+              "total_volume": 30000.00,
+              "successful_count": 1,
+              "failed_count": 0
+            },
+            {
+              "date": "2024-09-19",
+              "transaction_count": 1,
+              "total_volume": 15000.00,
+              "successful_count": 0,
+              "failed_count": 0,
+              "pending_count": 1
+            }
+          ],
+          "top_users": [
+            {
+              "user_id": 1,
+              "full_name": "Jean Baptiste Uwimana",
+              "phone_number": "+250788123456",
+              "transaction_count": 4,
+              "total_volume": 225000.00,
+              "sent_count": 2,
+              "received_count": 2
+            },
+            {
+              "user_id": 2,
+              "full_name": "Marie Claire Mukamana",
+              "phone_number": "+250722987654",
+              "transaction_count": 3,
+              "total_volume": 80000.00,
+              "sent_count": 2,
+              "received_count": 1
+            }
+          ],
+          "system_health": {
+            "processing_errors": 1,
+            "warning_count": 1,
+            "average_processing_time": "2.1s",
+            "last_batch_processed": "BATCH_002",
+            "last_processing_time": "2024-09-19T10:30:00Z"
+          }
+        },
+        "metadata": {
+          "generated_at": "2024-09-19T12:31:00Z",
+          "cache_expires_at": "2024-09-19T13:31:00Z",
+          "data_freshness": "5_minutes"
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_analytics_001"
+      }
+    },
+
+    "error_response": {
+      "description": "Standard error response format",
+      "example": {
+        "success": false,
+        "error": {
+          "code": "TRANSACTION_NOT_FOUND",
+          "message": "Transaction with ID 999 was not found",
+          "details": {
+            "transaction_id": 999,
+            "searched_at": "2024-09-19T12:31:00Z"
+          }
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_error_123"
+      }
+    },
+
+    "paginated_response": {
+      "description": "Paginated response format for lists",
+      "example": {
+        "success": true,
+        "data": [
+          {
+            "transaction_id": 1,
+            "amount": 50000.00,
+            "transaction_date": "2024-09-15T10:30:00Z",
+            "status": "SUCCESS",
+            "sender_name": "Jean Baptiste Uwimana",
+            "receiver_name": "Marie Claire Mukamana",
+            "category_name": "Money Transfer"
+          }
+        ],
+        "pagination": {
+          "current_page": 1,
+          "per_page": 20,
+          "total_pages": 5,
+          "total_records": 87,
+          "has_next": true,
+          "has_previous": false,
+          "next_page": 2,
+          "previous_page": null
+        },
+        "timestamp": "2024-09-19T12:31:00Z",
+        "request_id": "req_paginated_001"
+      }
+    }
+  },
+
+  "data_mapping": {
+    "description": "Mapping between SQL tables and JSON representations",
+    "mappings": {
+      "users_table_to_json": {
+        "sql_table": "users",
+        "json_object": "user",
+        "field_mappings": {
+          "user_id": "user_id",
+          "phone_number": "phone_number",
+          "full_name": "full_name",
+          "account_status": "account_status",
+          "registration_date": "registration_date (ISO 8601 format)",
+          "last_activity_date": "last_activity_date (ISO 8601 format)",
+          "created_at": "created_at (ISO 8601 format)",
+          "updated_at": "updated_at (ISO 8601 format)"
+        }
+      },
+      "transactions_table_to_json": {
+        "sql_table": "transactions",
+        "json_object": "transaction",
+        "field_mappings": {
+          "transaction_id": "transaction_id",
+          "sender_user_id": "nested in sender object",
+          "receiver_user_id": "nested in receiver object",
+          "category_id": "nested in category object",
+          "amount": "amount (decimal as number)",
+          "currency_code": "currency_code",
+          "transaction_date": "transaction_date (ISO 8601 format)",
+          "status": "status",
+          "reference_number": "reference_number",
+          "description": "description",
+          "fee_amount": "fee_amount (decimal as number)",
+          "balance_before": "balance_before (decimal as number)",
+          "balance_after": "balance_after (decimal as number)",
+          "created_at": "created_at (ISO 8601 format)",
+          "processed_at": "processed_at (ISO 8601 format)"
+        }
+      },
+      "joins_to_nested_objects": {
+        "user_details": {
+          "join": "LEFT JOIN users ON transactions.sender_user_id = users.user_id",
+          "nesting": "Creates nested 'sender' object with user details"
+        },
+        "category_details": {
+          "join": "JOIN transaction_categories ON transactions.category_id = transaction_categories.category_id",
+          "nesting": "Creates nested 'category' object with category details"
+        },
+        "transaction_roles": {
+          "join": "JOIN user_transaction_roles ON transactions.transaction_id = user_transaction_roles.transaction_id",
+          "nesting": "Creates 'roles' array with user role assignments"
+        }
+      }
+    }
+  },
+
+  "serialization_notes": {
+    "timestamp_format": "All timestamps are serialized in ISO 8601 format (YYYY-MM-DDTHH:mm:ssZ)",
+    "decimal_precision": "Monetary amounts maintain 2 decimal places precision",
+    "null_handling": "SQL NULL values are represented as JSON null",
+    "enum_values": "SQL ENUM values are serialized as strings",
+    "json_fields": "SQL JSON columns are parsed and embedded as nested JSON objects",
+    "phone_number_format": "Phone numbers include country code prefix",
+    "currency_handling": "All amounts assume RWF currency unless specified otherwise"
+  }
+}
